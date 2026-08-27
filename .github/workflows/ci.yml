@@ -1,0 +1,135 @@
+name: CI Pipeline - Modulo POS Promociones
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint:
+    name: 1. Linter (Backend & Frontend)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js v24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.19
+
+      - name: Validar presencia de variables/secretos requeridos
+        run: |
+          if [ -z "${{ secrets.POSTGRES_DB }}" ] || [ -z "${{ secrets.POSTGRES_USER }}" ] \vert{}\vert{} [ -z "${{ secrets.POSTGRES_PASSWORD }}" ]; then
+            echo "::error::Faltan variables de entorno requeridas en GitHub Secrets."
+            exit 1
+          fi
+
+      - name: Instalar dependencias backend
+        run: npm ci
+        working-directory: ./backend
+
+      - name: Instalar dependencias frontend
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Correr Linter Backend
+        run: npm run lint
+        working-directory: ./backend
+
+      - name: Correr Linter Frontend
+        run: npm run lint
+        working-directory: ./frontend
+
+  test:
+    name: 2. Pruebas Unitarias (Backend)
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js v24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.19
+
+      - name: Instalar dependencias backend
+        run: npm ci
+        working-directory: ./backend
+
+      - name: Generar cliente de Prisma
+        run: npx prisma@7 generate
+        working-directory: ./backend
+        env:
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+
+      - name: Ejecutar Tests Automatizados (Jest)
+        run: npm run test:ci
+        working-directory: ./backend
+
+  build:
+    name: 3. Build de Imágenes Docker
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Imagen Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false
+          tags: backend-pos:test
+
+      - name: Build Imagen Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: false
+          tags: frontend-pos:test
+          build-args: |
+            VITE_API_URL=http://localhost:4000
+
+  smoke-test:
+    name: 4. Smoke Test de Integracion (/health)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Crear archivo .env para docker-compose
+        run: |
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+
+      - name: Levantar contenedores con docker-compose
+        run: docker compose up -d --build
+
+      - name: Esperar a que el servicio Backend pase el healthcheck (max 60s)
+        run: |
+          for i in {1..12}; do
+            STATUS=$(curl -s http://localhost:4000/health || echo "error")
+            if [[ "$STATUS" == *"ok"* ]]; then
+              echo "✅ El endpoint /health respondio 200 OK"
+              exit 0
+            fi
+            echo "Esperando respuesta de /health ($i/12)..."
+            sleep 5
+          done
+          echo "❌ Error: /health no respondio en el tiempo esperado"
+          docker compose logs backend
+          exit 1
+
+      - name: Apagar contenedores
+        if: always()
+        run: docker compose down -v

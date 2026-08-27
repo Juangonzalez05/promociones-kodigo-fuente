@@ -1,0 +1,37 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cross-env NODE_OPTIONS=--experimental-strip-types nodemon src/server.js",
+    "start": "cross-env NODE_OPTIONS=--experimental-strip-types node src/server.js",
+    "lint": "eslint .",
+    "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --experimental-strip-types\" jest",
+    "test:ci": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --experimental-strip-types\" jest --ci --forceExit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.4.0",
+    "cross-env": "^10.1.0",
+    "eslint": "^10.9.1",
+    "globals": "^17.11.0",
+    "jest": "^30.4.2",
+    "nodemon": "^3.1.14",
+    "prisma": "^7.10.0",
+    "supertest": "^7.2.2"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "pg": "^8.23.0",
+    "zod": "^3.25.76"
+  }
+}
