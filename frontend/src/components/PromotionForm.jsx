@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from 'react';
 
 export function PromotionForm({ products, onSuccess, onError }) {
   const [formData, setFormData] = useState({

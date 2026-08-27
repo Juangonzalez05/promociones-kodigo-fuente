@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+
+import { useState, useEffect } from 'react';
 import { api } from "./services/api";
 import { SummaryPanel } from "./components/SummaryPanel";
 import { PromotionForm } from "./components/PromotionForm";
@@ -27,7 +28,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadData();
+  const fetchData = async () => {
+    await loadData();
+  };
+  fetchData();
   }, []);
 
   const handleCreatePromotion = async (payload) => {

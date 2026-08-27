@@ -1,5 +1,3 @@
-import React from "react";
-
 export function PromotionList({ promotions, onUpdateEstado, onDelete }) {
   const formatFecha = (str) => new Date(str).toLocaleString("es-CO");
 
