@@ -98,7 +98,7 @@ jobs:
           build-args: |
             VITE_API_URL=http://localhost:4000
 
- smoke-test:
+  smoke-test:
     name: 4. Smoke Test de Integracion (/health)
     needs: build
     runs-on: ubuntu-latest
