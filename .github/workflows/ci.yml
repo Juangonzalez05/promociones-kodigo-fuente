@@ -98,7 +98,7 @@ jobs:
           build-args: |
             VITE_API_URL=http://localhost:4000
 
-  smoke-test:
+ smoke-test:
     name: 4. Smoke Test de Integracion (/health)
     needs: build
     runs-on: ubuntu-latest
@@ -111,24 +111,25 @@ jobs:
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
           echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
-          echo "DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_DB }}" >> .env
-          echo "PORT=4000" >> .env
 
       - name: Levantar contenedores con docker-compose
         run: docker compose up -d --build
 
-      - name: Esperar a que el servicio Backend pase el healthcheck (max 60s)
+      - name: Esperar disponibilidad de la BD e iniciar backend
+        run: sleep 10
+
+      - name: Verificar endpoint /health del Backend
         run: |
-          for i in {1..12}; do
+          for i in {1..15}; do
             STATUS=$(curl -s http://localhost:4000/health || echo "error")
             if [[ "$STATUS" == *"ok"* ]]; then
-              echo "✅ El endpoint /health respondio 200 OK"
+              echo "✅ El endpoint /health respondio 200 OK con exito"
               exit 0
             fi
-            echo "Esperando respuesta de /health ($i/12)..."
-            sleep 5
+            echo "Esperando a que la API responda ($i/15)..."
+            sleep 4
           done
-          echo "❌ Error: /health no respondio en el tiempo esperado"
+          echo "❌ Error: /health no respondio en el tiempo esperado. Logs del backend:"
           docker compose logs backend
           exit 1
 
