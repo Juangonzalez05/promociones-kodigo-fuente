@@ -12,7 +12,7 @@
 
 ## Por qué PostgreSQL sobre SQL Server / MongoDB
 
-El modelo es claramente relacional (promoción → producto/categoría), Prisma elimina casi todo el SQL manual, y la imagen `postgres:16-alpine` es la más ligera de configurar de las tres.
+El modelo es claramente relacional (promoción → producto/categoría), Prisma elimina casi todo el SQL manual, y la imagen `postgres:18-alpine` es la más ligera de configurar de las tres.
 
 ## Decisiones pendientes de documentar
 

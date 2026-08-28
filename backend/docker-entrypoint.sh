@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-echo "=== Aplicando esquema de base de datos con Prisma ==="
-npx prisma db push --accept-data-loss
+echo "=== Aplicando migraciones de Prisma (migrate deploy) ==="
+npx prisma@7 migrate deploy
 
 echo "=== Iniciando servidor Backend Express ==="
 exec "$@"

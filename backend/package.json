@@ -8,7 +8,8 @@
     "start": "cross-env NODE_OPTIONS=--experimental-strip-types node src/server.js",
     "lint": "eslint .",
     "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --experimental-strip-types\" jest",
-    "test:ci": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --experimental-strip-types\" jest --ci --forceExit"
+    "test:ci": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --experimental-strip-types\" jest --ci --forceExit",
+    "seed": "cross-env NODE_OPTIONS=--experimental-strip-types node prisma/seed.js"
   },
   "keywords": [],
   "author": "",
